@@ -1,0 +1,99 @@
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+
+# List of URLs
+urls = [
+    "https://www.teamrankings.com/ncaa-basketball/stat/points-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/average-scoring-margin",
+    "https://www.teamrankings.com/ncaa-basketball/stat/floor-percentage",
+    "https://www.teamrankings.com/ncaa-basketball/stat/1st-half-points-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/2nd-half-points-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/average-1st-half-margin",
+    "https://www.teamrankings.com/ncaa-basketball/stat/average-2nd-half-margin",
+    "https://www.teamrankings.com/ncaa-basketball/stat/percent-of-points-from-2-pointers",
+    "https://www.teamrankings.com/ncaa-basketball/stat/percent-of-points-from-3-pointers",
+    "https://www.teamrankings.com/ncaa-basketball/stat/percent-of-points-from-free-throws",
+    "https://www.teamrankings.com/ncaa-basketball/stat/shooting-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/three-point-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/two-point-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/free-throw-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/field-goals-attempted-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/three-pointers-attempted-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/free-throws-attempted-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/three-point-rate",
+    "https://www.teamrankings.com/ncaa-basketball/stat/fta-per-fga",
+    "https://www.teamrankings.com/ncaa-basketball/stat/ftm-per-100-possessions",
+    "https://www.teamrankings.com/ncaa-basketball/stat/free-throw-rate",
+    "https://www.teamrankings.com/ncaa-basketball/stat/offensive-rebounds-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/defensive-rebounds-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/total-rebounds-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/offensive-rebounding-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/defensive-rebounding-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/total-rebounding-percentage",
+    "https://www.teamrankings.com/ncaa-basketball/stat/blocks-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/steals-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/steals-perpossession",
+    "https://www.teamrankings.com/ncaa-basketball/stat/steal-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/assists-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/turnovers-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/turnovers-per-possession",
+    "https://www.teamrankings.com/ncaa-basketball/stat/assist--per--turnover-ratio",
+    "https://www.teamrankings.com/ncaa-basketball/stat/assists-per-fgm",
+    "https://www.teamrankings.com/ncaa-basketball/stat/assists-per-possession",
+    "https://www.teamrankings.com/ncaa-basketball/stat/personal-fouls-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/personal-fouls-per-possession",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-points-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-floor-percentage",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-1st-half-points-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-2nd-half-points-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-average-1st-half-margin",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-average-2nd-half-margin",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-percent-of-points-from-2-pointers",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-percent-of-points-from-3-pointers",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-percent-of-points-from-free-throws",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-shooting-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-three-point-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-two-point-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-free-throw-pct",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-field-goals-attempted-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-three-pointers-attempted-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-free-throws-attempted-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-three-point-rate",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-fta-per-fga",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-ftm-per-100-possessions",
+    "https://www.teamrankings.com/ncaa-basketball/stat/opponent-free-throw-rate",
+    "https://www.teamrankings.com/ncaa-basketball/stat/possessions-per-game",
+    "https://www.teamrankings.com/ncaa-basketball/stat/win-pct-close-games"
+]
+
+def extract_table(url):
+    response = requests.get(url)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    table = soup.find('table')
+    df = pd.read_html(str(table))[0]
+
+    # Drop unwanted columns
+    df = df.drop(columns=["Rank", "2023"], errors="ignore")
+
+    # Sort by "Team" column
+    df = df.sort_values(by="Team", ascending=True)
+
+    return df
+
+# Collect all DataFrames
+dataframes = []
+
+for url in urls:
+    try:
+        df = extract_table(url)
+        dataframes.append(df)
+    except Exception as e:
+        print(f"Error processing {url}: {e}")
+
+# Combine all DataFrames side by side
+master_df = pd.concat(dataframes, axis=1)
+
+# Save to CSV or print
+master_df.to_csv("master_dataframe.csv", index=False)
+print(master_df)
