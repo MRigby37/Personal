@@ -2,7 +2,7 @@ import requests
 import pandas as pd
 from bs4 import BeautifulSoup
 
-# List of URLs
+# Full list of URLs
 urls = [
     "https://www.teamrankings.com/ncaa-basketball/stat/points-per-game",
     "https://www.teamrankings.com/ncaa-basketball/stat/average-scoring-margin",
@@ -64,7 +64,7 @@ urls = [
     "https://www.teamrankings.com/ncaa-basketball/stat/opponent-ftm-per-100-possessions",
     "https://www.teamrankings.com/ncaa-basketball/stat/opponent-free-throw-rate",
     "https://www.teamrankings.com/ncaa-basketball/stat/possessions-per-game",
-    "https://www.teamrankings.com/ncaa-basketball/stat/win-pct-close-games"
+    "https://www.teamrankings.com/ncaa-basketball/stat/win-pct-close-games",
 ]
 
 def extract_table(url):
@@ -77,23 +77,28 @@ def extract_table(url):
     df = df.drop(columns=["Rank", "2023"], errors="ignore")
 
     # Sort by "Team" column
-    df = df.sort_values(by="Team", ascending=True)
+    df = df.sort_values(by="Team", ascending=True).reset_index(drop=True)
 
     return df
 
-# Collect all DataFrames
-dataframes = []
+# Initialize an empty DataFrame for merging
+master_df = None
 
-for url in urls:
+for idx, url in enumerate(urls):
     try:
         df = extract_table(url)
-        dataframes.append(df)
+        # Add unique suffix to columns (except "Team")
+        if master_df is None:
+            master_df = df
+        else:
+            df = df.rename(
+                columns={col: f"{col}_{idx}" for col in df.columns if col != "Team"}
+            )
+            master_df = pd.merge(master_df, df, on="Team", how="outer")
     except Exception as e:
         print(f"Error processing {url}: {e}")
-
-# Combine all DataFrames side by side
-master_df = pd.concat(dataframes, axis=1)
 
 # Save to CSV or print
 master_df.to_csv("master_dataframe.csv", index=False)
 print(master_df)
+
